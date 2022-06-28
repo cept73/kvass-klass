@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Тестовая задачка про аппарат с Квасс-Классом
  * 
@@ -15,16 +16,17 @@ const MILLION = 10**6;
 
 function readInputFile($filename)
 {
-    if (!file_exists($filename)) return false;
+    if (!file_exists($filename)) {
+        return null;
+    }
     $file = file_get_contents($filename);
     $lines = explode("\n", $file);
     return $lines;
 }
 
 
-function showBalance($state, $fromWhere = 0)
+function showBalance($state, $fromWhere = 0, $debug = false)
 {
-    global $debug;
     if (!$debug) {
         return;
     }
@@ -40,7 +42,7 @@ function checkRequirements($state)
 }
 
 
-function runCalc($fileName): array
+function runCalc($fileName, $debugFlag = false): array
 {
     $state = array();
 
@@ -73,7 +75,7 @@ function runCalc($fileName): array
     }
 
     // Покажем начальное состояние
-    showBalance($state, 'подошли к аппарату');
+    showBalance($state, 'подошли к аппарату', $debugFlag);
 
     do {
         $goNextStep = false;
@@ -87,7 +89,7 @@ function runCalc($fileName): array
             $state['userMillions'] -= $needMillions;
             $state['deviceMillions'] += $needMillions;
             $state['bottles'] ++;
-            showBalance($state, 'есть точно сколько нужно');
+            showBalance($state, 'есть точно сколько нужно', $debugFlag);
             $goNextStep = true;
             continue;
         }
@@ -111,7 +113,7 @@ function runCalc($fileName): array
             // Купили еще одну бутылку!
             $state['bottles'] ++;
 
-            showBalance($state, 'с миллиона сдадите?');
+            showBalance($state, 'с миллиона сдадите?', $debugFlag);
             $goNextStep = true;
             continue;
         }
@@ -126,10 +128,10 @@ function main()
 {
     // Определяем параметры запуска
     $inputFile = $params[1] ?? __DIR__ . '/input.txt';
-    $debug = ($params[2] ?? 'false') == 'true';
+    $debugFlag = ($params[2] ?? 'false') == 'true';
     
-    // Запускам
-    $result = runCalc($inputFile);
+    // Запускаем
+    $result = runCalc($inputFile, $debugFlag);
     print($result['bottles'] . "\n");
 }
 
