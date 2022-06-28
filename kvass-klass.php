@@ -24,8 +24,10 @@ function readInputFile($filename)
 
 function showBalance($state, $fromWhere = 0)
 {
-    global $DEBUG;
-    if (!$DEBUG) return;
+    global $debug;
+    if (!$debug) {
+        return;
+    }
 
     print_r([$fromWhere => $state]);
     print("\n");
@@ -34,8 +36,7 @@ function showBalance($state, $fromWhere = 0)
 
 function checkRequirements($state)
 {
-    if ($state['priceBottle'] < 1) return false;
-    return true;
+    return $state['priceBottle'] >= 1;
 }
 
 
@@ -47,24 +48,29 @@ function runCalc($fileName): array
     $state['bottles'] = 0;
 
     // Неправильный файл
-    if (!($fileContent = readInputFile($fileName))) return $state;
+    if (!($fileContent = readInputFile($fileName))) {
+        return $state;
+    }
 
     // Берем две строки
-    list($firstLine, $secondLine) = $fileContent;
+    [$firstLine, $secondLine] = $fileContent;
 
     // Строим начальное состояние
-    list($state['userMillions'], $state['userCoins']) = explode(' ', $firstLine);
-    list($state['priceBottle'], $state['deviceCoins']) = explode(' ', $secondLine);
+    [$state['userMillions'], $state['userCoins']] = explode(' ', $firstLine);
+    [$state['priceBottle'], $state['deviceCoins']] = explode(' ', $secondLine);
 
     // Приводим к целому
-    foreach(['userMillions', 'userCoins', 'priceBottle', 'deviceCoins'] as $index => $elem)
+    foreach(['userMillions', 'userCoins', 'priceBottle', 'deviceCoins'] as $index => $elem) {
         $state[$elem] = intval($state[$elem]);
+    }
 
     // Количество миллионов в аппарате не важно, будем считать что их нет
     $state['deviceMillions'] = 0;
 
     // Что-то не так
-    if (!checkRequirements($state)) return $state;
+    if (!checkRequirements($state)) {
+        return $state;
+    }
 
     // Покажем начальное состояние
     showBalance($state, 'подошли к аппарату');
@@ -86,17 +92,6 @@ function runCalc($fileName): array
             continue;
         }
 
-        // Монет хватит? Сдачи не надо
-        if ($state['userCoins'] >= $state['priceBottle']) {
-            // Пересчитаем
-            $state['userCoins'] -= $state['priceBottle'];
-            $state['deviceCoins'] += $state['priceBottle'];
-            $state['bottles'] ++;
-            showBalance($state, 'хватает мелочи');
-            $goNextStep = true;
-            continue;
-        }
-
         // Если не хватит - пытаемся потратить миллионы (но это если они остались)
         if ($state['userMillions'] > 0) {
             // Сколько нужно в аппарате для сделки?
@@ -104,7 +99,9 @@ function runCalc($fileName): array
             $needToRefundMillions = 1 + intval($state['priceBottle'] / MILLION);
 
             // Не хватило
-            if ($state['deviceCoins'] < $needToRefundCoins) continue;
+            if ($state['deviceCoins'] < $needToRefundCoins) {
+                continue;
+            }
 
             // Пересчитаем балансы
             $state['userCoins'] += $needToRefundCoins;
